@@ -7,23 +7,26 @@ import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.events.PluginChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginManager;
-import org.apache.commons.lang3.ThreadUtils;
+
+import javax.inject.Singleton;
 
 @Slf4j
+@Singleton
 public class MScriptManager {
     private static final String SCRIPT_MANAGER_THREAD_NAME = "ProjectM Script Manager";
     private static final Object BUS_SUB = new Object();
     private static MScript activeScript = null;
-    private static PluginManager pluginManager = null;
+    static PluginManager pluginManager;
 
-    private static final Runnable runScriptManager = () -> {
-
+    private void  runScriptManager(){
         if (pluginManager == null) {
-            pluginManager = M.getInstance().getPluginManager();
+            log.info("Plugin manager is null");
+            pluginManager = M.getPluginManager();
             return;
         }
 
         boolean switchedScript = false;
+        log.info("Plugin manager: " + pluginManager);
         for (Plugin p : pluginManager.getPlugins()) {
             if (p instanceof MScript) {
                 if (pluginManager.isPluginEnabled(p)) {
@@ -49,12 +52,19 @@ public class MScriptManager {
 
 
     public static void manageScripts() {
-        if (ThreadUtils.findThreadsByName(SCRIPT_MANAGER_THREAD_NAME).size() > 0) {
-            return;
-        }
-        new Thread(runScriptManager, SCRIPT_MANAGER_THREAD_NAME).start();
+        new MScriptManager().runScriptManager();
     }
-    public void start(EventBus eventBus) {
+
+    public static synchronized MScript getActiveScript() {
+        return activeScript;
+    }
+
+    public static synchronized void setActiveScript(MScript setScript) {
+        activeScript = setScript;
+    }
+
+    public void start(EventBus eventBus, PluginManager pluginManager) {
+        MScriptManager.pluginManager = pluginManager;
         eventBus.subscribe(PluginChanged.class, BUS_SUB, this::pluginChanged);
     }
 
@@ -64,13 +74,6 @@ public class MScriptManager {
 
     private void pluginChanged(PluginChanged event) {
         manageScripts();
-    }
-    public static synchronized MScript getActiveScript() {
-        return activeScript;
-    }
-
-    public static synchronized void setActiveScript(MScript setScript) {
-        activeScript = setScript;
     }
 
 

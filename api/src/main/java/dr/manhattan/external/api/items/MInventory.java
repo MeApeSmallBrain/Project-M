@@ -1,9 +1,8 @@
-package dr.manhattan.external.api.player;
+package dr.manhattan.external.api.items;
 
 import dr.manhattan.external.api.M;
 import dr.manhattan.external.api.calc.MCalc;
 import dr.manhattan.external.api.interact.MMenuEntryInterceptor;
-import dr.manhattan.external.api.items.MItemDefinition;
 import dr.manhattan.external.api.mouse.MMouse;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
@@ -16,6 +15,7 @@ import net.runelite.client.eventbus.EventBus;
 import javax.inject.Singleton;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Singleton
@@ -25,11 +25,12 @@ public class MInventory {
     private final Object BUS_SUB = new Object();
 
     public static int getEmptySlots() {
+        refreshInventory();
         return 28 - inventory.size();
     }
 
     public static void openInventory() {
-        Client client = M.getInstance().getClient();
+        Client client = M.client();
 
         if (client == null || client.getGameState() != GameState.LOGGED_IN) {
             return;
@@ -46,6 +47,23 @@ public class MInventory {
             dropAction(widget);
         });
         return true;
+    }
+
+    public static int getCount(String...items) {
+        return getCount(true, items);
+    }
+    public static int getCount(boolean includeStack, String... items) {
+        AtomicInteger count = new AtomicInteger();
+        List<String> lookFor = Arrays.asList(items);
+        inventory.forEach((slot, widget) -> {
+            ItemDefinition def = MItemDefinition.getDef(widget.getId());
+            if (def == null) return;
+            if (lookFor.contains(def.getName())){
+                if(includeStack) count.addAndGet(widget.getQuantity());
+                else count.addAndGet(1);
+            }
+        });
+        return count.get();
     }
 
     public static boolean drop(String... items) {
@@ -65,6 +83,17 @@ public class MInventory {
         inventory.forEach((slot, widget) -> {
             ItemDefinition def = MItemDefinition.getDef(widget.getId());
             if (def == null) return;
+            if (dropList.contains(def.getName())) dropAction(widget);
+        });
+        return true;
+    }
+
+    public static boolean dropAllUnnoted(String... items) {
+        List<String> dropList = Arrays.asList(items);
+        inventory.forEach((slot, widget) -> {
+            ItemDefinition def = MItemDefinition.getDef(widget.getId());
+            if (def == null) return;
+            if( def.getNote() == widget.getId() ) return;
             if (!dropList.contains(def.getName())) return;
             dropAction(widget);
         });
@@ -100,7 +129,7 @@ public class MInventory {
     }
 
     public static boolean isOpen() {
-        Client client = M.getInstance().getClient();
+        Client client = M.client();
 
         if (client.getWidget(WidgetInfo.INVENTORY) == null) {
             return false;
@@ -110,6 +139,7 @@ public class MInventory {
 
     public static void refreshInventory() {
         Collection<WidgetItem> items = getInvWidgets();
+        if(items == null) return;
         inventory.clear();
         for (WidgetItem item : items) {
             inventory.put(item.getIndex(), item);
@@ -125,7 +155,7 @@ public class MInventory {
     }
 
     private static Widget getInvWidget() {
-        Client client = M.getInstance().getClient();
+        Client client = M.client();
         if (client == null) return null;
         return client.getWidget(WidgetInfo.INVENTORY);
     }

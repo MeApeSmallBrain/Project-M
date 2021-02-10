@@ -50,6 +50,9 @@ public class MMouse {
     }
 
     public static Point getClickPoint(Shape shape) {
+        if(shape == null){
+            return randomPointInViewport();
+        }
         int x = -1, y = -1;
 
         Rectangle bounds = shape.getBounds();
@@ -68,6 +71,14 @@ public class MMouse {
     public static boolean handleMouseClick(Point point) {
         executorService.submit(() -> click(point));
         return true;
+    }
+
+    private static Point randomPointInViewport() {
+
+        int viewportHeight = M.client().getViewportHeight();
+        int viewportWidth = M.client().getViewportWidth();
+
+        return new Point(nextInt(0,viewportWidth), nextInt(0,viewportHeight));
     }
 
     private static boolean pointInViewport(Point p) {
@@ -109,16 +120,9 @@ public class MMouse {
 
     public static void click(Point p) {
         p = adjustForStretched(p);
-        try {
-            mouseEvent(MOUSE_MOVED, p);
-            Thread.sleep(nextInt(50, 500));
-            mouseEvent(MOUSE_PRESSED, p);
-            Thread.sleep(nextInt(5, 50));
-            mouseEvent(MOUSE_RELEASED, p);
-            mouseEvent(MOUSE_CLICKED, p);
+        mouseEvent(MOUSE_PRESSED, p);
+        mouseEvent(MOUSE_RELEASED, p);
+        mouseEvent(MOUSE_CLICKED, p);
 
-        } catch (InterruptedException e) {
-            log.error("Mouse", e);
-        }
     }
 }

@@ -37,3 +37,4 @@ for (project in rootProject.children) {
     }
 }
 include("api")
+include("mFisher")

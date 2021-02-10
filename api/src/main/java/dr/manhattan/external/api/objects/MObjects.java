@@ -9,6 +9,8 @@ import net.runelite.api.ObjectDefinition;
 import net.runelite.api.queries.TileObjectQuery;
 
 import javax.inject.Singleton;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -16,8 +18,7 @@ import java.util.stream.Collectors;
 @Singleton
 public class MObjects extends TileObjectQuery<GameObject, MObjects> {
 
-
-    public MObjects hasName(String... names) {
+    public MObjects hasName(Collection<String> names) {
         predicate = and(object ->
         {
             for (String name : names) {
@@ -32,12 +33,18 @@ public class MObjects extends TileObjectQuery<GameObject, MObjects> {
         return this;
     }
 
+    public MObjects hasName(String... names) {
+        return hasName(Arrays.asList(names));
+    }
+
     public MObjects hasAction(String... actions) {
         predicate = and(object ->
         {
             for (String action : actions) {
                 ObjectDefinition def = MObjectDefinition.getDef(object.getId());
-                if (def == null) return false;
+                if (def == null){
+                    return false;
+                }
                 for (String a : def.getActions()) {
                     if (a == null) continue;
                     if (a.equals(action)) return true;
