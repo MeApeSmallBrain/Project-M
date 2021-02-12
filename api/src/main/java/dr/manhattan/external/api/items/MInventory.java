@@ -63,6 +63,7 @@ public class MInventory {
                 else count.addAndGet(1);
             }
         });
+        log.info(Arrays.toString(items) + "count = " + count.get());
         return count.get();
     }
 

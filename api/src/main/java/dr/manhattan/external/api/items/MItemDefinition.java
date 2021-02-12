@@ -23,6 +23,8 @@ public class MItemDefinition {
     }
 
     public static ItemDefinition getDef(int id) {
+        if (defCache.containsKey(id)) return defCache.get(id);
+        checkID(id);
         return defCache.get(id);
     }
 }

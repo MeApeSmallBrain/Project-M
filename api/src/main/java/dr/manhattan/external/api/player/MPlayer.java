@@ -19,7 +19,7 @@ public class MPlayer {
     }
 
     public static boolean isAnimating() {
-        return M.client().getLocalPlayer().getAnimation() != -1;
+        return get().getAnimation() != -1;
     }
 
     public static Player get() {
@@ -27,7 +27,7 @@ public class MPlayer {
     }
 
     public static WorldPoint location() {
-        return M.client().getLocalPlayer().getWorldLocation();
+        return get().getWorldLocation();
     }
 
     public static boolean isIdle() {

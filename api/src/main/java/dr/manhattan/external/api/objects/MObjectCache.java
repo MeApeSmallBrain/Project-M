@@ -26,7 +26,6 @@ public class MObjectCache {
     static private final ConcurrentHashMap<Long, GameObject> objects = new ConcurrentHashMap<>();
 
     static Instant lastRefresh = Instant.now().minus(Duration.ofMinutes(60));
-
     static public List<GameObject> getObjects() {
         List<GameObject> goList = new ArrayList<>();
         for (GameObject go : objects.values()) {
