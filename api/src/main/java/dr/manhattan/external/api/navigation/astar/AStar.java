@@ -1,19 +1,16 @@
-package dr.manhattan.external.api.astar;
+package dr.manhattan.external.api.navigation.astar;
 
 import dr.manhattan.external.api.M;
-import dr.manhattan.external.api.objects.MObjectCache;
-import dr.manhattan.external.api.objects.MObjectDefinition;
-import dr.manhattan.external.api.objects.MObjects;
 import dr.manhattan.external.api.player.MPlayer;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.Constants;
+import net.runelite.api.Locatable;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.widgets.WidgetInfo;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
@@ -28,6 +25,7 @@ public class AStar {
     private LinkedList<WorldPoint> emptyPath = new LinkedList<>();
     private ArrayList<ANode> open_list = new ArrayList<>(), closed_list = new ArrayList<>(), nNodes;
     private ANode closestWorldPoint = null, startway, currentNode, neighbor, node, newNode;
+    private ANode n;
 
     public void initiateWaypoints() {
         if (lastPosition != null && lastPosition.equals(MPlayer.get().getLocalLocation()))
@@ -37,7 +35,7 @@ public class AStar {
         lastPosition = MPlayer.get().getLocalLocation();
     }
 
-    private void setCurrentNodeToLowestScore(){
+    private void setCurrentNodeToLowestScore() {
         int lowestScoreIndex = 0;
         for (int i = 0; i < open_list.size(); i++) {
             if (open_list.get(i).fullScore < open_list.get(lowestScoreIndex).fullScore)
@@ -46,7 +44,7 @@ public class AStar {
         currentNode = open_list.get(lowestScoreIndex);
     }
 
-    private void setClosestWorldPoint(LocalPoint destinationwp){
+    private void setClosestWorldPoint(LocalPoint destinationwp) {
         if (closestWorldPoint == null ||
                 (currentNode.getLocalPoint().distanceTo(destinationwp) <
                         closestWorldPoint.getLocalPoint().distanceTo(destinationwp))
@@ -54,20 +52,21 @@ public class AStar {
             closestWorldPoint = currentNode;
         }
     }
-    private boolean currentIsDestination(LocalPoint destinationwp){
+
+    private boolean currentIsDestination(LocalPoint destinationwp) {
         return currentNode.sceneX == destinationwp.getSceneX() && currentNode.sceneY == destinationwp.getSceneY();
     }
 
-    private boolean isNodeClosed(ANode node){
+    private boolean isNodeClosed(ANode node) {
         LocalPoint playerLoc = MPlayer.get().getLocalLocation();
 
         if (node.sceneX == playerLoc.getSceneX() && node.sceneY == playerLoc.getSceneY())
             return true;
 
         AtomicBoolean isClosed = new AtomicBoolean(false);
-        if(!isClosed.get())
+        if (!isClosed.get())
             closed_list.forEach(clNode -> {
-                if(isClosed.get()) return;
+                if (isClosed.get()) return;
                 if (node.sceneX == clNode.sceneX && node.sceneY == clNode.sceneY) {
                     //closed list contains
                     isClosed.set(true);
@@ -77,7 +76,7 @@ public class AStar {
         return isClosed.get();
     }
 
-    private AStarPath getNodePath(ANode node){
+    private AStarPath getNodePath(ANode node) {
         LinkedList<WorldPoint> ret = new LinkedList<>();
         ANode startNode = node;
         if (node.parent != null)
@@ -95,13 +94,17 @@ public class AStar {
 
     public AStarPath getPath(LocalPoint startwp, LocalPoint destinationwp) {
         return getPath(startwp, destinationwp, null);
+
     }
+
     public AStarPath getPath(LocalPoint destinationwp) {
         return getPath(MPlayer.get().getLocalLocation(), destinationwp, null);
     }
+
     public AStarPath getPath(Locatable destinationwp) {
         return getPath(MPlayer.get().getLocalLocation(), destinationwp.getLocalLocation(), null);
     }
+
     public AStarPath getPath(LocalPoint startwp, LocalPoint destinationwp, Predicate<LocalPoint> filter) {
         if (startwp == null || destinationwp == null) {
             lastPath = emptyPath.toArray(new WorldPoint[]{});
@@ -136,39 +139,11 @@ public class AStar {
             closed_list.add(currentNode);
 
             //get valid neighbours;
-            Scene scene = M.client().getScene();
-            Tile[][][] tiles = scene.getTiles();
-            int z = M.client().getPlane();
-            if(filter == null) filter = new Predicate<LocalPoint>() {
-                @Override
-                public boolean test(LocalPoint localPoint) {
-                    return true;
-                }
-            };
-            nNodes = getConnectedWaypoints(currentNode, destinationwp, filter.and(localPoint ->{
-                Tile tile = tiles[z][localPoint.getSceneX()][localPoint.getSceneY()];
-                if (tile == null) {
-                    return true;
-                }
-                GameObject[] gameObjects = tile.getGameObjects();
-                for(GameObject go: gameObjects){
-                    if(go == null) continue;
-                    ObjectDefinition def = MObjectDefinition.getDef(go.getId());
-                    if(def == null) return true;
-                    for(String action: def.getActions()){
-                        if(action == null) continue;
-                        if(action.toLowerCase().contains("open")){
-
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }));
+            nNodes = getConnectedWaypoints(currentNode, destinationwp, null);
 
             nNodes.forEach(nNode -> {
 
-                if(isNodeClosed(nNode)) return;
+                if (isNodeClosed(nNode)) return;
 
                 int gScore = currentNode.score + 1;
                 boolean gScoreIsBest = false;
@@ -186,7 +161,7 @@ public class AStar {
                     nNode.score = gScore;
                     nNode.fullScore = nNode.score + nNode.heuristic;
                 }
-                if(!isOpen) open_list.add(nNode);
+                if (!isOpen) open_list.add(nNode);
 
             });
         }
@@ -224,8 +199,6 @@ public class AStar {
         waypoints[x][y] = new ANode(x, y);
         return waypoints[x][y];
     }
-
-    private ANode n;
 
     private ArrayList<ANode> getConnectedWaypoints(ANode awp, LocalPoint dest, Predicate<LocalPoint> filter) {
         ArrayList<ANode> neighbours = new ArrayList<>();

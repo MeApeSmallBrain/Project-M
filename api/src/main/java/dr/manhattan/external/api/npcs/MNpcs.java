@@ -1,7 +1,7 @@
 package dr.manhattan.external.api.npcs;
 
-import dr.manhattan.external.api.astar.AStar;
-import dr.manhattan.external.api.astar.AStarPath;
+import dr.manhattan.external.api.navigation.astar.AStar;
+import dr.manhattan.external.api.navigation.astar.AStarPath;
 import dr.manhattan.external.api.player.MPlayer;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class MNpcs extends ActorQuery<NPC, MNpcs> {
-    public MNpcs isID(Integer... ids){
+    public MNpcs isID(Integer... ids) {
         return isID(Arrays.asList(ids));
     }
-    public MNpcs isID(Collection<Integer> ids)
-    {
+
+    public MNpcs isID(Collection<Integer> ids) {
         predicate = and(actor -> ids.contains(actor.getId()));
         return this;
     }
@@ -43,37 +43,40 @@ public class MNpcs extends ActorQuery<NPC, MNpcs> {
         return this;
     }
 
-    public MNpcs isReachable(){
+    public MNpcs isReachable() {
         predicate = and(object -> {
             AStarPath path = new AStar().getPath(object.getLocalLocation());
-            log.info("Distance to " + object.getName() + " is " + path.getDistanceToDestination());
             return (path.getDistanceToDestination() < Integer.MAX_VALUE);
         });
         return this;
     }
-    public MNpcs isInteracting(){
+
+    public MNpcs isInteracting() {
         predicate = and(object -> {
             return object.getInteracting() != null;
         });
         return this;
     }
 
-    public MNpcs notInteracting(){
+    public MNpcs notInteracting() {
         predicate = and(object -> {
             return object.getInteracting() == null;
         });
         return this;
     }
-    public MNpcs notDead(){
+
+    public MNpcs notDead() {
         predicate = and(object -> {
             return !object.isDead();
         });
         return this;
     }
+
     public NPC starNearest() {
         return starNearest(5);
     }
-    public NPC starNearest(int limit){
+
+    public NPC starNearest(int limit) {
         List<NPC> npcs = MNpcCache.getNpcs().stream()
                 .filter(predicate)
                 .sorted(
@@ -94,12 +97,11 @@ public class MNpcs extends ActorQuery<NPC, MNpcs> {
     }
 
     @Override
-    public LocatableQueryResults<NPC> result(Client client)
-    {
+    public LocatableQueryResults<NPC> result(Client client) {
         return result();
     }
-    public LocatableQueryResults<NPC> result()
-    {
+
+    public LocatableQueryResults<NPC> result() {
         return new LocatableQueryResults(MNpcCache.getNpcs().stream()
                 .filter(predicate)
                 .collect(Collectors.toList()));

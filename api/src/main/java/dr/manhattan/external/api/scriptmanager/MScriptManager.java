@@ -15,13 +15,27 @@ import javax.inject.Singleton;
 public class MScriptManager {
     private static final String SCRIPT_MANAGER_THREAD_NAME = "ProjectM Script Manager";
     private static final Object BUS_SUB = new Object();
-    private static MScript activeScript = null;
     static PluginManager pluginManager;
+    private static MScript activeScript = null;
 
-    private void  runScriptManager(){
+    public static void manageScripts() {
+        new MScriptManager().runScriptManager();
+    }
+
+    ;
+
+    public static synchronized MScript getActiveScript() {
+        return activeScript;
+    }
+
+    public static synchronized void setActiveScript(MScript setScript) {
+        activeScript = setScript;
+    }
+
+    private void runScriptManager() {
         if (pluginManager == null) {
             log.info("Plugin manager is null");
-            pluginManager = M.getPluginManager();
+            pluginManager = M.pluginManager();
             return;
         }
 
@@ -48,19 +62,6 @@ public class MScriptManager {
         if (getActiveScript() != null && !pluginManager.isPluginEnabled(getActiveScript())) {
             setActiveScript(null);
         }
-    };
-
-
-    public static void manageScripts() {
-        new MScriptManager().runScriptManager();
-    }
-
-    public static synchronized MScript getActiveScript() {
-        return activeScript;
-    }
-
-    public static synchronized void setActiveScript(MScript setScript) {
-        activeScript = setScript;
     }
 
     public void start(EventBus eventBus, PluginManager pluginManager) {

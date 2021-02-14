@@ -49,17 +49,18 @@ public class MInventory {
         return true;
     }
 
-    public static int getCount(String...items) {
+    public static int getCount(String... items) {
         return getCount(true, items);
     }
+
     public static int getCount(boolean includeStack, String... items) {
         AtomicInteger count = new AtomicInteger();
         List<String> lookFor = Arrays.asList(items);
         inventory.forEach((slot, widget) -> {
             ItemDefinition def = MItemDefinition.getDef(widget.getId());
             if (def == null) return;
-            if (lookFor.contains(def.getName())){
-                if(includeStack) count.addAndGet(widget.getQuantity());
+            if (lookFor.contains(def.getName())) {
+                if (includeStack) count.addAndGet(widget.getQuantity());
                 else count.addAndGet(1);
             }
         });
@@ -69,12 +70,12 @@ public class MInventory {
 
     public static boolean drop(String... items) {
         List<String> dropList = Arrays.asList(items);
-        Optional<Map.Entry<Integer, WidgetItem>> entry =  inventory.entrySet().stream().filter(e -> {
+        Optional<Map.Entry<Integer, WidgetItem>> entry = inventory.entrySet().stream().filter(e -> {
             ItemDefinition def = MItemDefinition.getDef(e.getValue().getId());
             return dropList.contains(def.getName());
         }).findFirst();
 
-        if(entry.isEmpty()) return false;
+        if (entry.isEmpty()) return false;
         dropAction(entry.get().getValue());
         return true;
     }
@@ -94,7 +95,7 @@ public class MInventory {
         inventory.forEach((slot, widget) -> {
             ItemDefinition def = MItemDefinition.getDef(widget.getId());
             if (def == null) return;
-            if( def.getNote() == widget.getId() ) return;
+            if (def.getNote() == widget.getId()) return;
             if (!dropList.contains(def.getName())) return;
             dropAction(widget);
         });
@@ -140,7 +141,7 @@ public class MInventory {
 
     public static void refreshInventory() {
         Collection<WidgetItem> items = getInvWidgets();
-        if(items == null) return;
+        if (items == null) return;
         inventory.clear();
         for (WidgetItem item : items) {
             inventory.put(item.getIndex(), item);

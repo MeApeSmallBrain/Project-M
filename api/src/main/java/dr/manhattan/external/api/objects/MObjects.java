@@ -1,13 +1,14 @@
 package dr.manhattan.external.api.objects;
 
 import dr.manhattan.external.api.M;
-import dr.manhattan.external.api.astar.AStar;
-import dr.manhattan.external.api.astar.AStarPath;
-import dr.manhattan.external.api.npcs.MNpcCache;
-import dr.manhattan.external.api.npcs.MNpcs;
+import dr.manhattan.external.api.navigation.astar.AStar;
+import dr.manhattan.external.api.navigation.astar.AStarPath;
 import dr.manhattan.external.api.player.MPlayer;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.Client;
+import net.runelite.api.GameObject;
+import net.runelite.api.LocatableQueryResults;
+import net.runelite.api.ObjectDefinition;
 import net.runelite.api.queries.TileObjectQuery;
 
 import javax.inject.Singleton;
@@ -54,7 +55,8 @@ public class MObjects extends TileObjectQuery<GameObject, MObjects> {
         });
         return this;
     }
-    public MObjects isReachable(){
+
+    public MObjects isReachable() {
         predicate = and(object -> {
             AStarPath path = new AStar().getPath(object.getLocalLocation());
             return (path.getDistanceToDestination() < Integer.MAX_VALUE);

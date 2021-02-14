@@ -14,8 +14,9 @@ public class MPlayer {
         }
         return player.getIdlePoseAnimation() != player.getPoseAnimation();
     }
-    public static int getLevel(Skill skill){
-       return M.client().getRealSkillLevel(skill);
+
+    public static int getLevel(Skill skill) {
+        return M.client().getRealSkillLevel(skill);
     }
 
     public static boolean isAnimating() {

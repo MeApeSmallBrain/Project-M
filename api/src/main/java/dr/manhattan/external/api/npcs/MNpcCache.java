@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MNpcCache {
     private static final Object BUS_SUB = new Object();
     static private final ConcurrentHashMap<Integer, NPC> npcs = new ConcurrentHashMap<>();
-
+    static boolean refreshing = false;
 
     static public List<NPC> getNpcs() {
         List<NPC> npcList = new ArrayList<>();
@@ -27,7 +27,6 @@ public class MNpcCache {
         }
         return npcList;
     }
-    static boolean refreshing = false;
 
     static public void refreshNpcs() {
         refreshing = true;
@@ -65,6 +64,6 @@ public class MNpcCache {
 
 
     private void gameTick(GameTick event) {
-        if(!refreshing) refreshNpcs();
+        if (!refreshing) refreshNpcs();
     }
 }

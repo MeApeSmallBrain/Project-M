@@ -1,4 +1,4 @@
-package dr.manhattan.external.api.astar;
+package dr.manhattan.external.api.navigation.astar;
 
 public class CollisionFlags {
     public static final int OPEN = 0x0;

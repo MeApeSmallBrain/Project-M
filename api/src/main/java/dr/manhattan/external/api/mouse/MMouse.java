@@ -50,7 +50,7 @@ public class MMouse {
     }
 
     public static Point getClickPoint(Shape shape) {
-        if(shape == null){
+        if (shape == null) {
             return randomPointInViewport();
         }
         int x = -1, y = -1;
@@ -78,7 +78,7 @@ public class MMouse {
         int viewportHeight = M.client().getViewportHeight();
         int viewportWidth = M.client().getViewportWidth();
 
-        return new Point(nextInt(0,viewportWidth), nextInt(0,viewportHeight));
+        return new Point(nextInt(0, viewportWidth), nextInt(0, viewportHeight));
     }
 
     private static boolean pointInViewport(Point p) {

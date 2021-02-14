@@ -8,8 +8,5 @@ public abstract class MScript extends Plugin {
 
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public MScript() {
-    }
-
     public abstract int loop();
 }

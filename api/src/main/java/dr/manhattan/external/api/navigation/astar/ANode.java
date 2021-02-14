@@ -1,4 +1,4 @@
-package dr.manhattan.external.api.astar;
+package dr.manhattan.external.api.navigation.astar;
 
 import net.runelite.api.Client;
 import net.runelite.api.Constants;
@@ -11,7 +11,7 @@ public class ANode {
     public ANode parent = null;
     public int score, heuristic, fullScore, collisionData;
 
-    public ANode(int x, int y){
+    public ANode(int x, int y) {
         this.sceneX = x;
         this.sceneY = y;
         fullScore = 0;
@@ -20,7 +20,7 @@ public class ANode {
     }
 
     public boolean blocked(Client client, int x, int y) {
-        if (sceneX <  0 || sceneY < 0 ||
+        if (sceneX < 0 || sceneY < 0 ||
                 sceneX >= Constants.SCENE_SIZE || sceneY >= Constants.SCENE_SIZE)
             return true;
         collisionData = client.getCollisionMaps()[client.getPlane()].getFlags()[sceneX][sceneY];
@@ -37,14 +37,14 @@ public class ANode {
     }
 
     @Override
-    public boolean equals(Object obj){
-        if (obj == null){
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
-        if (obj == this){
+        if (obj == this) {
             return true;
         }
-        if (!(obj instanceof ANode)){
+        if (!(obj instanceof ANode)) {
             return false;
         }
         ANode compare = (ANode) obj;
@@ -69,25 +69,27 @@ public class ANode {
         return (flag & checkFlag) == checkFlag;
     }
 
-    private boolean blockedNorth(){
+    private boolean blockedNorth() {
         return checkFlag(collisionData, CollisionFlags.NORTH)
                 || checkFlag(collisionData, CollisionFlags.BLOCKED_NORTH_WALL);
     }
 
-    private boolean blockedEast(){
+    private boolean blockedEast() {
         return checkFlag(collisionData, CollisionFlags.EAST)
                 || checkFlag(collisionData, CollisionFlags.BLOCKED_EAST_WALL);
     }
-    private boolean blockedSouth(){
+
+    private boolean blockedSouth() {
         return checkFlag(collisionData, CollisionFlags.SOUTH)
                 || checkFlag(collisionData, CollisionFlags.BLOCKED_SOUTH_WALL);
     }
-    private boolean blockedWest(){
+
+    private boolean blockedWest() {
         return checkFlag(collisionData, CollisionFlags.WEST)
                 || checkFlag(collisionData, CollisionFlags.BLOCKED_WEST_WALL);
     }
 
-    public boolean isWalkable(){
+    public boolean isWalkable() {
         return !(checkFlag(collisionData, CollisionFlags.OCCUPIED)
                 || checkFlag(collisionData, CollisionFlags.SOLID)
                 || checkFlag(collisionData, CollisionFlags.BLOCKED)

@@ -2,6 +2,10 @@ package dr.manhattan.external.api;
 
 import dr.manhattan.external.api.interact.MMenuEntryInterceptor;
 import dr.manhattan.external.api.items.MInventory;
+import dr.manhattan.external.api.navigation.Navigation;
+import dr.manhattan.external.api.navigation.PathMapOverlay;
+import dr.manhattan.external.api.navigation.PathMinimapOverlay;
+import dr.manhattan.external.api.navigation.PathTileOverlay;
 import dr.manhattan.external.api.npcs.MNpcCache;
 import dr.manhattan.external.api.objects.MObjectCache;
 import dr.manhattan.external.api.pickups.MPickupCache;
@@ -14,6 +18,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.plugins.PluginType;
+import net.runelite.client.ui.overlay.OverlayManager;
 import org.pf4j.Extension;
 
 import javax.inject.Inject;
@@ -43,6 +48,8 @@ public class M extends Plugin {
     @Inject
     private MMenuEntryInterceptor mMenuEntryInterceptor;
     @Inject
+    private Navigation navigation;
+    @Inject
     private MNpcCache mNpcCache;
     @Inject
     private EventBus eventBus;
@@ -50,9 +57,23 @@ public class M extends Plugin {
     private Client client;
     @Inject
     private PluginManager pluginManager;
+    @Inject
+    private OverlayManager overlayManager;
 
-    public static PluginManager getPluginManager() {
+    @Inject
+    private PathTileOverlay pathOverlay;
+    @Inject
+    private PathMinimapOverlay pathMinimapOverlay;
+    @Inject
+    private PathMapOverlay pathMapOverlay;
+
+
+    public static PluginManager pluginManager() {
         return M.getInstance().pluginManager;
+    }
+
+    public static OverlayManager overlayManager() {
+        return M.getInstance().overlayManager;
     }
 
     public static Client client() {
@@ -76,10 +97,14 @@ public class M extends Plugin {
         mPickupCache.start(eventBus);
         mMenuEntryInterceptor.start(eventBus);
         mScriptManager.start(eventBus, pluginManager);
+        navigation.start(eventBus);
 
         MScriptManager.manageScripts();
         MObjectCache.refreshObjects();
-        MNpcCache.refreshNpcs();
+
+        //overlayManager.add(pathOverlay);
+        overlayManager.add(pathMapOverlay);
+        //overlayManager.add(pathMinimapOverlay);
     }
 
     @Override
@@ -90,6 +115,12 @@ public class M extends Plugin {
         mPickupCache.stop(eventBus);
         mMenuEntryInterceptor.stop(eventBus);
         mScriptManager.stop(eventBus);
+        navigation.stop(eventBus);
+
+        overlayManager.remove(pathOverlay);
+        overlayManager.remove(pathMapOverlay);
+        overlayManager.remove(pathMinimapOverlay);
+
         mScriptThread.kill();
     }
 }

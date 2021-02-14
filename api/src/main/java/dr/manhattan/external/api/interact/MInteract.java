@@ -16,7 +16,7 @@ public class MInteract {
     public static boolean gameObject(GameObject go, String... actions) {
 
         ObjectDefinition def = MObjectDefinition.getDef(go.getId());
-        if(def == null) return false;
+        if (def == null) return false;
         String[] goActions = def.getActions();
         int actionIndex = -1;
         String action = "";
@@ -69,7 +69,7 @@ public class MInteract {
     public static boolean npc(NPC npc, String... actions) {
 
         NPCDefinition def = MNpcDefinition.getDef(npc.getId());
-        if(def == null) return false;
+        if (def == null) return false;
         String[] npcActions = def.getActions();
         int actionIndex = -1;
         String action = "";
@@ -109,7 +109,7 @@ public class MInteract {
                         "",
                         npc.getIndex(),
                         actionOp.getId(),
-                        0,0,
+                        0, 0,
                         false
                 )
         );
