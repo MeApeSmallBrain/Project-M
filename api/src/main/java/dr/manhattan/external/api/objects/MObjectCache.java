@@ -6,6 +6,7 @@ import net.runelite.api.*;
 import net.runelite.api.events.GameObjectChanged;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.client.eventbus.EventBus;
 
 import javax.inject.Singleton;
@@ -21,11 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 public class MObjectCache {
 
-
     private static final Object BUS_SUB = new Object();
-    static private ConcurrentHashMap<Long, GameObject> objects = new ConcurrentHashMap<>();
-    private static Instant lastRefresh = null;
+    static private final ConcurrentHashMap<Long, GameObject> objects = new ConcurrentHashMap<>();
 
+    static Instant lastRefresh = Instant.now().minus(Duration.ofMinutes(60));
 
     static public List<GameObject> getObjects() {
         List<GameObject> goList = new ArrayList<>();
@@ -39,9 +39,10 @@ public class MObjectCache {
         if (M.client() == null) {
             return;
         }
-        if (M.client().getLocalPlayer() == null) {
+        if (M.client().getGameState() != GameState.LOGGED_IN) {
             return;
         }
+        log.info("Refreshing GameObjects...");
         lastRefresh = Instant.now();
         Scene scene = M.client().getScene();
         Tile[][][] tiles = scene.getTiles();
@@ -59,24 +60,27 @@ public class MObjectCache {
                 }
             }
         }
+
+
+        log.info("Objects in cache: " + objectsCache.size());
         objects.clear();
         for (GameObject go : objectsCache) {
             addObject(go);
         }
+        log.info(objects.size() + " GameObjects refreshed!");
     }
 
     private static void addObject(GameObject go) {
 
-
-        if (lastRefresh == null || lastRefresh.isBefore(Instant.now().minus(Duration.ofMinutes(5)))) {
-            refreshObjects();
-            return;
-        }
         if (go == null) {
             return;
         }
+        if (lastRefresh.isBefore(Instant.now().minusSeconds(60))) {
+            refreshObjects();
+            return;
+        }
 
-        if(!M.client().isClientThread()) return;
+        if (!M.client().isClientThread()) return;
 
         ObjectDefinition def = M.client().getObjectDefinition(go.getId());
         MObjectDefinition.checkID(go.getId(), def);
@@ -89,6 +93,10 @@ public class MObjectCache {
     }
 
     private static void removeObject(GameObject go) {
+        if (lastRefresh.isBefore(Instant.now().minusSeconds(60))) {
+            refreshObjects();
+            return;
+        }
         objects.remove(go.getHash(), go);
     }
 
@@ -96,6 +104,7 @@ public class MObjectCache {
         eventBus.subscribe(GameObjectSpawned.class, BUS_SUB, this::objectSpawned);
         eventBus.subscribe(GameObjectDespawned.class, BUS_SUB, this::objectDepawned);
         eventBus.subscribe(GameObjectChanged.class, BUS_SUB, this::objectChanged);
+        eventBus.subscribe(GameStateChanged.class, BUS_SUB, this::gameStateChanged);
 
     }
 
@@ -105,15 +114,20 @@ public class MObjectCache {
     }
 
 
+    private void gameStateChanged(GameStateChanged event) {
+        if (event.getGameState() == GameState.LOGGED_IN) refreshObjects();
+    }
 
-    private void objectChanged(final GameObjectChanged event) {
+    private void objectChanged(GameObjectChanged event) {
         removeObject(event.getPrevious());
         addObject(event.getGameObject());
     }
 
-    private void objectDepawned(final GameObjectDespawned event) {
+    private void objectDepawned(GameObjectDespawned event) {
         removeObject(event.getGameObject());
     }
 
-    private void objectSpawned(final GameObjectSpawned event) { addObject(event.getGameObject()); }
+    private void objectSpawned(GameObjectSpawned event) {
+        addObject(event.getGameObject());
+    }
 }

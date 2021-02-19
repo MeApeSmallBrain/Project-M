@@ -2,6 +2,7 @@ package dr.manhattan.external.api.player;
 
 import dr.manhattan.external.api.M;
 import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.coords.WorldPoint;
 
 public class MPlayer {
@@ -14,8 +15,12 @@ public class MPlayer {
         return player.getIdlePoseAnimation() != player.getPoseAnimation();
     }
 
+    public static int getLevel(Skill skill) {
+        return M.client().getRealSkillLevel(skill);
+    }
+
     public static boolean isAnimating() {
-        return M.client().getLocalPlayer().getAnimation() != -1;
+        return get().getAnimation() != -1;
     }
 
     public static Player get() {
@@ -23,7 +28,7 @@ public class MPlayer {
     }
 
     public static WorldPoint location() {
-        return M.client().getLocalPlayer().getWorldLocation();
+        return get().getWorldLocation();
     }
 
     public static boolean isIdle() {
